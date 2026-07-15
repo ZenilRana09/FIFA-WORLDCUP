@@ -1,9 +1,9 @@
 import type { Request, Response, NextFunction } from "express";
 
-import { registerSchema } from "./auth.validation.js";
 import { authService } from "./auth.service.js";
+import { registerSchema } from "./auth.validation.js";
 
-export class AuthController {
+class AuthController {
   async register(req: Request, res: Response, next: NextFunction) {
     try {
       const data = registerSchema.parse(req.body);
