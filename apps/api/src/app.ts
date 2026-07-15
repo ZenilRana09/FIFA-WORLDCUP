@@ -5,8 +5,10 @@ import morgan from "morgan";
 
 import { env } from "./common/config/env.js";
 import { healthRoutes } from "./modules/health/index.js";
+import { authRoutes } from "./modules/auth/index.js";
 import { notFound } from "./common/middleware/notFound.middleware.js";
 import { errorHandler } from "./common/middleware/error.middleware.js";
+
 const app = express();
 
 // Security
@@ -23,11 +25,11 @@ app.use(
 // Logging
 app.use(morgan("dev"));
 
-// Body parsers
+// Body Parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Root route
+// Root Route
 app.get("/", (_req, res) => {
   res.status(200).json({
     success: true,
@@ -37,13 +39,14 @@ app.get("/", (_req, res) => {
   });
 });
 
-// Health route
+// Routes
 app.use("/api/health", healthRoutes);
+app.use("/api/auth", authRoutes);
 
-// 404 handler
+// 404 Handler
 app.use(notFound);
 
-// Global error handler
+// Global Error Handler
 app.use(errorHandler);
 
 export default app;
