@@ -1,102 +1,139 @@
-import Image, { type ImageProps } from "next/image";
-import { Button } from "@repo/ui/button";
-import styles from "./page.module.css";
+import type { Incident } from "@/types/incident";
 
-type Props = Omit<ImageProps, "src"> & {
-  srcLight: string;
-  srcDark: string;
-};
+import Header from "../components/dashboard/Header";
+import StatCard from "../components/dashboard/StatCard";
+import IncidentCard from "../components/dashboard/IncidentCard";
+import AIRecommendation from "../components/dashboard/AIRecommendation";
+import LiveFeed from "../components/dashboard/LiveFeed";
+import StadiumMap from "../components/dashboard/StadiumMap";
+import Analytics from "../components/dashboard/Analytics";
+import RealtimeProvider from "../components/dashboard/RealtimeProvider";
 
-const ThemeImage = (props: Props) => {
-  const { srcLight, srcDark, ...rest } = props;
+import { getIncidents } from "../lib/api";
 
-  return (
-    <>
-      <Image {...rest} src={srcLight} className="imgLight" />
-      <Image {...rest} src={srcDark} className="imgDark" />
-    </>
+export default async function Home() {
+  const response = await getIncidents();
+
+  const incidents: Incident[] = Array.isArray(response?.data)
+    ? response.data
+    : [];
+
+  const criticalIncidents = incidents.filter(
+    (incident) => incident.severity === "CRITICAL"
   );
-};
 
-export default function Home() {
+  const averageCrowd =
+    incidents.length === 0
+      ? 0
+      : Math.round(
+          incidents.reduce(
+            (sum, incident) => sum + (incident.crowdDensity ?? 0),
+            0
+          ) / incidents.length
+        );
+
+  const aiAnalyzed = incidents.filter(
+    (incident) => incident.aiRisk
+  ).length;
+
+  const highestRiskIncident =
+    incidents.find((incident) => incident.aiRisk) ?? null;
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <ThemeImage
-          className={styles.logo}
-          srcLight="turborepo-dark.svg"
-          srcDark="turborepo-light.svg"
-          alt="Turborepo logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>apps/web/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <main className="min-h-screen bg-black p-8 text-white">
+      {/* Socket.IO Connection */}
+      <RealtimeProvider />
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://turborepo.dev/docs?utm_source"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+      <div className="mx-auto max-w-7xl">
+        <Header />
+
+        {/* KPI Cards */}
+        <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            title="Active Incidents"
+            value={String(incidents.length)}
+            icon="🚨"
+          />
+
+          <StatCard
+            title="Critical Alerts"
+            value={String(criticalIncidents.length)}
+            icon="⚠️"
+          />
+
+          <StatCard
+            title="Average Crowd"
+            value={`${averageCrowd}%`}
+            icon="👥"
+          />
+
+          <StatCard
+            title="AI Analyzed"
+            value={String(aiAnalyzed)}
+            icon="🤖"
+          />
+
+          <StatCard
+            title="Security Teams"
+            value="18"
+            icon="👮"
+          />
+
+          <StatCard
+            title="Medical Teams"
+            value="6"
+            icon="🚑"
+          />
+
+          <StatCard
+            title="CCTV Cameras"
+            value="248"
+            icon="🎥"
+          />
+
+          <StatCard
+            title="Response Time"
+            value="3.2m"
+            icon="⏱️"
+          />
         </div>
-        <Button appName="web" className={styles.secondary}>
-          Open alert
-        </Button>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://turborepo.dev?utm_source=create-turbo"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to turborepo.dev →
-        </a>
-      </footer>
-    </div>
+
+        {/* Command Center */}
+        <div className="mt-10 grid gap-6 lg:grid-cols-3">
+          <LiveFeed incidents={incidents} />
+
+          <StadiumMap incidents={incidents} />
+
+          <AIRecommendation incident={highestRiskIncident} />
+        </div>
+
+        {/* Live Incidents */}
+        <div className="mt-12">
+          <h2 className="mb-6 text-2xl font-bold">
+            🚨 Live Incidents
+          </h2>
+
+          <div className="grid gap-6">
+            {incidents.length > 0 ? (
+              incidents.map((incident) => (
+                <IncidentCard
+                  key={incident.id}
+                  incident={incident}
+                />
+              ))
+            ) : (
+              <div className="rounded-lg border border-gray-700 p-6 text-center text-gray-400">
+                No incidents available.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Analytics */}
+        <div className="mt-12">
+          <Analytics incidents={incidents} />
+        </div>
+      </div>
+    </main>
   );
 }
