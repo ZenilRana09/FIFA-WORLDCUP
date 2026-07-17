@@ -44,11 +44,17 @@ export default async function Home() {
       {/* Socket.IO Connection */}
       <RealtimeProvider />
 
-      <div className="mx-auto max-w-7xl">
+      <div
+        className="mx-auto max-w-7xl"
+        aria-describedby="dashboard-description"
+      >
         <Header />
 
         {/* KPI Cards */}
-        <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <section
+          className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4"
+          aria-label="Key Performance Indicators"
+        >
           <StatCard
             title="Active Incidents"
             value={String(incidents.length)}
@@ -96,20 +102,29 @@ export default async function Home() {
             value="3.2m"
             icon="⏱️"
           />
-        </div>
+        </section>
 
         {/* Command Center */}
-        <div className="mt-10 grid gap-6 lg:grid-cols-3">
+        <section
+          className="mt-10 grid gap-6 lg:grid-cols-3"
+          aria-label="Command Center"
+        >
           <LiveFeed incidents={incidents} />
 
           <StadiumMap incidents={incidents} />
 
           <AIRecommendation incident={highestRiskIncident} />
-        </div>
+        </section>
 
         {/* Live Incidents */}
-        <div className="mt-12">
-          <h2 className="mb-6 text-2xl font-bold">
+        <section
+          className="mt-12"
+          aria-labelledby="live-incidents-heading"
+        >
+          <h2
+            id="live-incidents-heading"
+            className="mb-6 text-2xl font-bold"
+          >
             🚨 Live Incidents
           </h2>
 
@@ -122,17 +137,24 @@ export default async function Home() {
                 />
               ))
             ) : (
-              <div className="rounded-lg border border-gray-700 p-6 text-center text-gray-400">
+              <div
+                className="rounded-lg border border-gray-700 p-6 text-center text-gray-400"
+                role="status"
+                aria-live="polite"
+              >
                 No incidents available.
               </div>
             )}
           </div>
-        </div>
+        </section>
 
         {/* Analytics */}
-        <div className="mt-12">
+        <section
+          className="mt-12"
+          aria-label="Analytics Dashboard"
+        >
           <Analytics incidents={incidents} />
-        </div>
+        </section>
       </div>
     </main>
   );

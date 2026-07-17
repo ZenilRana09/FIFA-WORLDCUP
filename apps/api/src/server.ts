@@ -3,15 +3,18 @@ import { Server } from "socket.io";
 
 import app from "./app.js";
 import { env } from "./common/config/env.js";
+import { setIO } from "./lib/socket.js";
 
 const httpServer = createServer(app);
 
-export const io = new Server(httpServer, {
+const io = new Server(httpServer, {
   cors: {
     origin: "http://localhost:3000",
     methods: ["GET", "POST"],
   },
 });
+
+setIO(io);
 
 io.on("connection", (socket) => {
   console.log(`✅ Client Connected: ${socket.id}`);
