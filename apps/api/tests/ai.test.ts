@@ -1,17 +1,29 @@
 import request from "supertest";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import app from "../src/app.js";
 
-describe("AI Routes", () => {
- it.skip("POST AI analyze endpoint should respond", async () => {
-    const res = await request(app)
-      .post("/api/ai/analyze")
-      .send({
-        title: "Crowd Surge",
-        description: "Crowd density increasing",
-        location: "Gate A",
-      });
+vi.mock("../src/modules/ai/ai.service.js", () => ({
+  aiService: {
+    analyzeIncident: vi.fn().mockResolvedValue({
+      risk: "HIGH",
+      priority: 9,
+      summary: "Crowd surge detected",
+      recommendedActions: ["Deploy security"],
+      estimatedResolutionTime: "15 minutes",
+    }),
+  },
+}));
 
-    expect([200, 400, 401, 500]).toContain(res.status);
+describe("AI Routes", () => {
+  it("POST /api/ai/analyze should return success", async () => {
+    const res = await request(app).post("/api/ai/analyze").send({
+      title: "Crowd Surge",
+      description: "Crowd density increasing",
+      location: "Gate A",
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.risk).toBe("HIGH");
   });
 });
